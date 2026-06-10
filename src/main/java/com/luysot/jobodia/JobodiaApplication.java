@@ -10,7 +10,7 @@ public class JobodiaApplication {
 
         SpringApplication.run(JobodiaApplication.class, args);
 
-        System.out.println("Backend Started...");
+        System.out.println("The Jobodia Backend Started...");
 	}
 
 }
