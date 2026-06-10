@@ -48,9 +48,9 @@ jobs:
           fi
 
           if [ "$JOB_STATUS" = "success" ]; then
-            STATUS_TEXT="✅ CI passed"
+            STATUS_TEXT="✅ Backend CI passed"
           else
-            STATUS_TEXT="❌ CI failed"
+            STATUS_TEXT="❌ Backend CI failed"
           fi
 
           MESSAGE=$(printf '%s\n\nRepository: %s\nBranch: %s\nCommit: %s\nMessage: %s\nAuthor: %s' \
