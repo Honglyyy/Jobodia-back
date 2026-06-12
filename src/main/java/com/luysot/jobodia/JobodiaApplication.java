@@ -11,6 +11,7 @@ public class JobodiaApplication {
         SpringApplication.run(JobodiaApplication.class, args);
 
         System.out.println("The Jobodiaaaa Backend Started...");
+        System.out.println("Test pull req by ly");
 	}
 
 }
