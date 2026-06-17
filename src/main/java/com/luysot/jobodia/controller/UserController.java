@@ -1,9 +1,9 @@
 package com.luysot.jobodia.controller;
 
-import com.luysot.jobodia.dto.RegisterRequestDto;
-import com.luysot.jobodia.dto.ResetPasswordRequest;
-import com.luysot.jobodia.dto.UserResponseDto;
-import com.luysot.jobodia.dto.VerifyUserDto;
+import com.luysot.jobodia.dto.UsersDTOs.RegisterRequestDto;
+import com.luysot.jobodia.dto.UsersDTOs.ResetPasswordRequest;
+import com.luysot.jobodia.dto.UsersDTOs.UserResponseDto;
+import com.luysot.jobodia.dto.UsersDTOs.VerifyUserDto;
 import com.luysot.jobodia.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

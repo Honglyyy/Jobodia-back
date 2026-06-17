@@ -1,6 +1,6 @@
 package com.luysot.jobodia.mapper;
 
-import com.luysot.jobodia.dto.UserResponseDto;
+import com.luysot.jobodia.dto.UsersDTOs.UserResponseDto;
 import com.luysot.jobodia.model.Users;
 import org.springframework.stereotype.Component;
 

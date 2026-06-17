@@ -1,6 +1,6 @@
 package com.luysot.jobodia.controller;
 
-import com.luysot.jobodia.dto.AuthRequest;
+import com.luysot.jobodia.dto.UsersDTOs.AuthRequest;
 import com.luysot.jobodia.mapper.UserMapper;
 import com.luysot.jobodia.model.Users;
 import com.luysot.jobodia.repository.UserRepository;

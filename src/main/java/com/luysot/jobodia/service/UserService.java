@@ -1,7 +1,7 @@
 package com.luysot.jobodia.service;
 
-import com.luysot.jobodia.dto.RegisterRequestDto;
-import com.luysot.jobodia.dto.UserResponseDto;
+import com.luysot.jobodia.dto.UsersDTOs.RegisterRequestDto;
+import com.luysot.jobodia.dto.UsersDTOs.UserResponseDto;
 import com.luysot.jobodia.mapper.UserMapper;
 import com.luysot.jobodia.model.Users;
 import com.luysot.jobodia.repository.UserRepository;
