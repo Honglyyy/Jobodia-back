@@ -89,4 +89,7 @@ public class Users implements UserDetails {
     public boolean isEnabled() {
         return isVerified;
     }
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private SeekerProfile seekerProfile;
 }

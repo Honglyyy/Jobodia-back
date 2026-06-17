@@ -1,4 +1,4 @@
-package com.luysot.jobodia.dto;
+package com.luysot.jobodia.dto.UsersDTOs;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

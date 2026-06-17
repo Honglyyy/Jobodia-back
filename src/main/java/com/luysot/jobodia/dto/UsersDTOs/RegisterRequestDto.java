@@ -1,4 +1,4 @@
-package com.luysot.jobodia.dto;
+package com.luysot.jobodia.dto.UsersDTOs;
 
 import com.luysot.jobodia.model.enums.Roles;
 import jakarta.validation.constraints.Email;
