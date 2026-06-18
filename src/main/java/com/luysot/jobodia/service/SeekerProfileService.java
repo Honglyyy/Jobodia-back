@@ -45,14 +45,25 @@ public class SeekerProfileService {
             "image/webp"
     );
 
-    public SeekerProfileResponseDto myProfile(String email){
+    public SeekerSkillsResponseDto myProfile(String email){
         Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User with the following email is not found!"));
 
-        SeekerProfile seekerProfile = seekerProfileRepository.findByUser(user).orElseThrow(()->new RuntimeException("User with the following email is not found!"));
+        SeekerProfile seeker = seekerProfileRepository.findByUser(user).orElseThrow(()->new RuntimeException("User with the following email is not found!"));
 
-        SeekerProfileResponseDto profile = seekerProfileMapper.toDto(seekerProfile);
 
-        return profile;
+        return SeekerSkillsResponseDto.builder()
+                .id(seeker.getId())
+                .username(seeker.getUser().getUsername())
+                .email(seeker.getUser().getEmail())
+                .phoneNumber(seeker.getPhoneNumber())
+                .profilePictureUrl(seeker.getProfilePictureUrl())
+                .gender(seeker.getGender())
+                .address(seeker.getAddress())
+                .userId(seeker.getUser().getUserId())
+                .skills(seeker.getSkills().stream()
+                        .map(skillMapper::toDto)
+                        .collect(Collectors.toSet()))
+                .build();
     }
 
     public SeekerProfileResponseDto createProfile(SeekerProfileRequestDto request, String email){
@@ -66,6 +77,7 @@ public class SeekerProfileService {
 
         seekerProfile.setPhoneNumber(request.phoneNumber());
         seekerProfile.setGender(request.gender());
+        seekerProfile.setAddress(request.address());
         seekerProfile.setUser(user);
 
         SeekerProfile savedProfile = seekerProfileRepository.save(seekerProfile);

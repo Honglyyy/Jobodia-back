@@ -20,7 +20,7 @@ public class SeekerProfileController {
     private final SeekerProfileService seekerProfileService;
 
     @GetMapping
-    ResponseEntity<SeekerProfileResponseDto> myProfile(Authentication authentication){
+    ResponseEntity<SeekerSkillsResponseDto> myProfile(Authentication authentication){
         return ResponseEntity.ok(seekerProfileService.myProfile(authentication.getName()));
     }
 
