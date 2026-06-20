@@ -1,10 +1,8 @@
 package com.luysot.jobodia.model;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
@@ -15,22 +13,21 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity
-public class SeekerResumes {
-
+public class SeekerCoverLetters {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
 
-    @Column(name = "resume")
-    private String resumeUrl;
-    @Column(name = "resume_stored_name")
-    private String resumeStoredName;
-    @Column(name = "resume_original_name")
-    private String resumeOriginalName;
-    @Column(name = "resume_content_type")
-    private String resumeContentType;
+    @Column(name = "coverLetter")
+    private String coverLetterUrl;
+    @Column(name = "coverLetter_stored_name")
+    private String coverLetterStoredName;
+    @Column(name = "coverLetter_original_name")
+    private String coverLetterOriginalName;
+    @Column(name = "coverLetter_content_type")
+    private String coverLetterContentType;
 
     @CreationTimestamp
     private Timestamp createdAt;

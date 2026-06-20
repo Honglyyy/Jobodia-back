@@ -1,16 +1,15 @@
 package com.luysot.jobodia.controller;
 
+import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerResumeResponseDto;
 import com.luysot.jobodia.service.SeekerResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,5 +29,21 @@ public class SeekerResumeController {
                 file
         );
         return ResponseEntity.ok("Resume uploaded!!");
+    }
+
+    @GetMapping("/me")
+    ResponseEntity<List<SeekerResumeResponseDto>> findAllSeekerOwnResume(Authentication authentication){
+        return ResponseEntity.ok(seekerResumeService.findAllSeekerOwnResume(authentication.getName()));
+    }
+
+    @GetMapping("/me/{id}")
+    ResponseEntity<SeekerResumeResponseDto> findSeekerOwnResume(@PathVariable Long id, Authentication authentication){
+        return ResponseEntity.ok(seekerResumeService.findSeekerOwnResume(id,authentication.getName()));
+    }
+
+    @DeleteMapping("/me/{id}")
+    ResponseEntity<?> deleteSeekerOwnResume(@PathVariable Long id, Authentication authentication){
+        seekerResumeService.deleteSeekerOwnResume(id, authentication.getName());
+        return ResponseEntity.ok("Resume deleted!");
     }
 }
