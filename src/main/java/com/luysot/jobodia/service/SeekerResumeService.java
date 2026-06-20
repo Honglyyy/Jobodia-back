@@ -7,6 +7,7 @@ import com.luysot.jobodia.model.Users;
 import com.luysot.jobodia.repository.SeekerProfileRepository;
 import com.luysot.jobodia.repository.SeekerResumesRepository;
 import com.luysot.jobodia.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -127,4 +128,13 @@ public class SeekerResumeService {
         return SeekerResumeResponseDto.builder().id(resume.getId()).title(resume.getTitle()).resumeUrl(resume.getResumeUrl()).build();
     }
 
+    @Transactional
+    public void deleteSeekerOwnResume(Long id, String email){
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        SeekerProfiles seekerProfiles = seekerProfileRepository
+                .findByUser(user)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found!!"));
+        seekerResumesRepository.deleteByIdAndSeeker(id,seekerProfiles);
+    }
 }

@@ -10,6 +10,7 @@ import com.luysot.jobodia.repository.SeekerCoverLettersRepository;
 import com.luysot.jobodia.repository.SeekerProfileRepository;
 import com.luysot.jobodia.repository.SeekerResumesRepository;
 import com.luysot.jobodia.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -93,7 +94,6 @@ public class SeekerCoverLetterService {
         SeekerCoverLetters saved =
                 seekerCoverLettersRepository.save(seekerCoverLetter);
 
-        // FIX: use resume ID instead of user ID
         saved.setCoverLetterUrl(
                 "/api/v1/seeker-resume/"
                         + saved.getId()
@@ -130,5 +130,15 @@ public class SeekerCoverLetterService {
 
 
         return SeekerCoverLetterResponseDto.builder().id(coverLetter.getId()).title(coverLetter.getTitle()).coverLetterUrl(coverLetter.getCoverLetterUrl()).build();
+    }
+
+    @Transactional
+    public void deleteSeekerOwnCoverLetter(Long id, String email){
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        SeekerProfiles seekerProfiles = seekerProfileRepository
+                .findByUser(user)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found!!"));
+        seekerCoverLettersRepository.deleteByIdAndSeeker(id,seekerProfiles);
     }
 }

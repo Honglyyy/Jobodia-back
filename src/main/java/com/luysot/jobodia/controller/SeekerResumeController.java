@@ -40,4 +40,10 @@ public class SeekerResumeController {
     ResponseEntity<SeekerResumeResponseDto> findSeekerOwnResume(@PathVariable Long id, Authentication authentication){
         return ResponseEntity.ok(seekerResumeService.findSeekerOwnResume(id,authentication.getName()));
     }
+
+    @DeleteMapping("/me/{id}")
+    ResponseEntity<?> deleteSeekerOwnResume(@PathVariable Long id, Authentication authentication){
+        seekerResumeService.deleteSeekerOwnResume(id, authentication.getName());
+        return ResponseEntity.ok("Resume deleted!");
+    }
 }

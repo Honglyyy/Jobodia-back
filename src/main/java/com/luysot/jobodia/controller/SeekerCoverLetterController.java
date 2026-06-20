@@ -43,4 +43,10 @@ public class SeekerCoverLetterController {
     ResponseEntity<SeekerCoverLetterResponseDto> findSeekerOwnCoverLetter(@PathVariable Long id, Authentication authentication){
         return ResponseEntity.ok(seekerCoverLetterService.findSeekerOwnCoverLetter(id,authentication.getName()));
     }
+
+    @DeleteMapping("/me/{id}")
+    ResponseEntity<?> deleteSeekerOwnCoverLetter(@PathVariable Long id, Authentication authentication){
+        seekerCoverLetterService.deleteSeekerOwnCoverLetter(id, authentication.getName());
+        return ResponseEntity.ok("Cover letter deleted!");
+    }
 }

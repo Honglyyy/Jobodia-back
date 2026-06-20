@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface SeekerCoverLettersRepository extends JpaRepository<SeekerCoverLetters, Long> {
     List<SeekerCoverLetters> findBySeeker(SeekerProfiles seeker);
     Optional<SeekerCoverLetters> findByIdAndSeeker(Long id, SeekerProfiles seeker);
+    void deleteByIdAndSeeker(Long id, SeekerProfiles seeker);
 }
