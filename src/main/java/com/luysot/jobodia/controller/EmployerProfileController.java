@@ -2,13 +2,10 @@ package com.luysot.jobodia.controller;
 
 import com.luysot.jobodia.dto.EmployerProfileDTOs.EmployerProfileRequestDto;
 import com.luysot.jobodia.dto.EmployerProfileDTOs.EmployerProfileResponseDto;
-import com.luysot.jobodia.model.EmployerProfiles;
-import com.luysot.jobodia.repository.EmployerProfileRepository;
 import com.luysot.jobodia.service.EmployerProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,7 +21,6 @@ import java.net.MalformedURLException;
 @RequestMapping("/api/v1/employer-profiles")
 public class EmployerProfileController {
     private final EmployerProfileService employerProfileService;
-    private final EmployerProfileRepository employerProfileRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('EMPLOYER')")
@@ -36,18 +32,11 @@ public class EmployerProfileController {
         return ResponseEntity.ok(employerProfileService.createProfile(dto,file,authentication.getName()));
     }
 
-    @GetMapping("/{id}/company-logo")
-    public ResponseEntity<Resource> loadCompanyProfile(
-            @PathVariable Long id
-    ) throws Exception {
-
-        EmployerProfiles profile = employerProfileRepository.findById(id)
-                .orElseThrow();
-
-        Resource resource = employerProfileService.loadCompanyLogo(id);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(profile.getCompanyLogoContentType()))
-                .body(resource);
-    }
+//    @PreAuthorize("hasRole('EMPLOYER')")
+//    @GetMapping("/company-logo")
+//    ResponseEntity<Resource> companyProfile(
+//            Authentication authentication
+//    ) throws MalformedURLException, FileNotFoundException {
+//        return ResponseEntity.ok(employerProfileService.viewCompnayLogo(authentication.getName()));
+//    }
 }
