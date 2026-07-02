@@ -32,11 +32,11 @@ public class EmployerProfileController {
         return ResponseEntity.ok(employerProfileService.createProfile(dto,file,authentication.getName()));
     }
 
-    @PreAuthorize("hasRole('EMPLOYER')")
-    @GetMapping("/company-logo")
-    ResponseEntity<Resource> companyProfile(
-            Authentication authentication
-    ) throws MalformedURLException, FileNotFoundException {
-        return ResponseEntity.ok(employerProfileService.viewCompnayLogo(authentication.getName()));
-    }
+//    @PreAuthorize("hasRole('EMPLOYER')")
+//    @GetMapping("/company-logo")
+//    ResponseEntity<Resource> companyProfile(
+//            Authentication authentication
+//    ) throws MalformedURLException, FileNotFoundException {
+//        return ResponseEntity.ok(employerProfileService.viewCompnayLogo(authentication.getName()));
+//    }
 }

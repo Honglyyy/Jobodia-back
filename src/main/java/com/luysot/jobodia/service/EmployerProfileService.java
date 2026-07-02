@@ -78,16 +78,22 @@ public class EmployerProfileService {
             employerProfile.setCompanyLogoContentType(contentType);
             employerProfile.setCompanyLogoOriginalName(originalName);
             employerProfile.setCompanyLogoStoredName(storedName);
-            employerProfile.setCompanyLogoUrl("/api/v1/employer-profiles/" + user.getId() + "/company-logo");
         }
 
         EmployerProfiles savedProfile = employerProfileRepository.save(employerProfile);
+
+        savedProfile.setCompanyLogoUrl(
+                "/api/v1/employer-profiles/" +
+                        savedProfile.getId() +
+                        "/company-logo"
+        );
+
+        employerProfileRepository.save(savedProfile);
         return employerProfileMapper.toDto(savedProfile);
     }
 
-    public Resource viewCompnayLogo(String email) throws FileNotFoundException, MalformedURLException {
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
-        EmployerProfiles employerProfiles = employerProfileRepository.findByUser(user).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
+    public Resource loadCompanyLogo(Long id) throws FileNotFoundException, MalformedURLException {
+        EmployerProfiles employerProfiles = employerProfileRepository.findById(id).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
 
         String storedName = employerProfiles.getCompanyLogoStoredName();
 
@@ -97,8 +103,8 @@ public class EmployerProfileService {
         }
 
         Path path = Paths.get("uploads")
-                .resolve("employer-profile")
-                .resolve(user.getUsername())
+                .resolve("employer-profiles")
+                .resolve(employerProfiles.getUser().getUsername())
                 .resolve(storedName);
 
         if (!Files.exists(path)) {
