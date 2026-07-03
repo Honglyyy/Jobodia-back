@@ -63,13 +63,18 @@ public class JobController {
         ));
     }
 
+    @GetMapping("/newly-added")
+    ResponseEntity<List<JobResponseDto>> findNewlyAddedJobs(){
+        return ResponseEntity.ok(jobService.findNewlyAddedJob());
+    }
+
     @GetMapping("/{id}")
     ResponseEntity<JobResponseDto> findJob(@PathVariable Long id){
         return ResponseEntity.ok(jobService.findJob(id));
     }
 
 
-    @GetMapping("/{me}")
+    @GetMapping("/me")
     ResponseEntity<Set<JobResponseDto>> findOwnEmployerJobs(Authentication authentication){
         return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName()));
     }

@@ -123,7 +123,6 @@ public class JobService {
             JobLevel jobLevel,
             JobSite jobSite
     ){
-        //TODO: Implement job search
         Specification<Jobs> spec = (root, query, cb) -> cb.conjunction();
         if (title != null && !title.isBlank()) {
             spec = spec.and(JobSpecification.hasTitle(title));
@@ -156,6 +155,12 @@ public class JobService {
 
         return jobRepository.findAll(spec)
                 .stream()
+                .map(jobMapper::toDto)
+                .toList();
+    }
+
+    public List<JobResponseDto> findNewlyAddedJob(){
+        return jobRepository.findTop5ByOrderByCreatedAtDesc().stream()
                 .map(jobMapper::toDto)
                 .toList();
     }
