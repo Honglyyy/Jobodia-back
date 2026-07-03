@@ -4,13 +4,20 @@ import com.luysot.jobodia.dto.JobDTOs.JobRequestDto;
 import com.luysot.jobodia.dto.JobDTOs.JobResponseDto;
 import com.luysot.jobodia.mapper.JobMapper;
 import com.luysot.jobodia.model.*;
+import com.luysot.jobodia.model.enums.JobLevel;
+import com.luysot.jobodia.model.enums.JobSite;
+import com.luysot.jobodia.model.enums.JobTime;
 import com.luysot.jobodia.repository.*;
+import com.luysot.jobodia.service.specification.JobSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +31,7 @@ public class JobService {
     private final SkillRepository skillRepository;
     private final IndustryRepository industryRepository;
     private final JobMapper jobMapper;
+    private final JobSpecification jobSpecification;
 
     public JobResponseDto addJob(String email, JobRequestDto request){
         Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
@@ -102,15 +110,61 @@ public class JobService {
         jobRepository.deleteByIdAndEmployer(id,employer);
     }
 
+    public List<JobResponseDto> findJobs(){
+        return new ArrayList<>(jobRepository.findAll().stream().map(jobMapper::toDto).toList());
+    }
+
+    public List<JobResponseDto> searchJob(
+            String title,
+            String industry,
+            String company,
+            String category,
+            JobTime jobType,
+            JobLevel jobLevel,
+            JobSite jobSite
+    ){
+        //TODO: Implement job search
+        Specification<Jobs> spec = (root, query, cb) -> cb.conjunction();
+        if (title != null && !title.isBlank()) {
+            spec = spec.and(JobSpecification.hasTitle(title));
+        }
+
+        if (industry != null && !industry.isBlank()) {
+            spec = spec.and(JobSpecification.hasIndustry(industry));
+        }
+
+        if (company != null && !company.isBlank()) {
+            spec = spec.and(JobSpecification.hasCompany(company));
+        }
+
+        if (category != null && !category.isBlank()) {
+            spec = spec.and(JobSpecification.hasCategory(category));
+        }
+
+        if (jobType != null) {
+            spec = spec.and(JobSpecification.hasJobType(jobType));
+        }
+
+        if (jobLevel != null) {
+            spec = spec.and(JobSpecification.hasJobLevel(jobLevel));
+        }
+
+        if (jobSite != null) {
+            spec = spec.and(JobSpecification.hasJobSite(jobSite));
+        }
+
+
+        return jobRepository.findAll(spec)
+                .stream()
+                .map(jobMapper::toDto)
+                .toList();
+    }
+
     public JobResponseDto findJob(Long id){
         Jobs job = jobRepository.findById(id).orElseThrow(()->new RuntimeException("Job not found"));
         return jobMapper.toDto(job);
     }
 
-    public Set<JobResponseDto> findJobByCategoryName(String categoryName){
-        Set<Jobs> job = jobRepository.findByCategoriesCategoryName(categoryName);
-        return job.stream().map(jobMapper::toDto).collect(Collectors.toSet());
-    }
 
     public Set<JobResponseDto> findOwnEmployerJobs(String email){
         Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
