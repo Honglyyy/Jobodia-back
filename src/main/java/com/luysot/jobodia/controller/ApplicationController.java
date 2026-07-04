@@ -61,7 +61,7 @@ public class ApplicationController {
     @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<ApplicationResponseDto> updateApplicationStatus(
             @PathVariable Long id,
-            @RequestBody UpdateApplicationStatusRequestDto reqStatus,
+            @Valid @RequestBody UpdateApplicationStatusRequestDto reqStatus,
             Authentication authentication){
         return ResponseEntity.ok(applicationService.updateApplicationStatus(id,reqStatus,authentication.getName()));
     }
