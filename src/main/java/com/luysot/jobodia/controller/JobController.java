@@ -3,6 +3,9 @@ package com.luysot.jobodia.controller;
 import com.luysot.jobodia.dto.JobDTOs.JobRequestDto;
 import com.luysot.jobodia.dto.JobDTOs.JobResponseDto;
 import com.luysot.jobodia.model.Jobs;
+import com.luysot.jobodia.model.enums.JobLevel;
+import com.luysot.jobodia.model.enums.JobSite;
+import com.luysot.jobodia.model.enums.JobTime;
 import com.luysot.jobodia.service.JobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -38,18 +43,38 @@ public class JobController {
         return ResponseEntity.ok("Job deleted");
     }
 
+    @GetMapping
+    ResponseEntity<List<JobResponseDto>> findJobs(){
+        return ResponseEntity.ok(jobService.findJobs());
+    }
+
+    @GetMapping("/search")
+    ResponseEntity<List<JobResponseDto>> search(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String industry,
+            @RequestParam(required = false) String company,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false)JobTime jobTime,
+            @RequestParam(required = false) JobLevel jobLevel,
+            @RequestParam(required = false) JobSite jobSite
+            ){
+        return ResponseEntity.ok(jobService.searchJob(
+                title,industry,company, category,jobTime, jobLevel,jobSite
+        ));
+    }
+
+    @GetMapping("/newly-added")
+    ResponseEntity<List<JobResponseDto>> findNewlyAddedJobs(){
+        return ResponseEntity.ok(jobService.findNewlyAddedJob());
+    }
 
     @GetMapping("/{id}")
     ResponseEntity<JobResponseDto> findJob(@PathVariable Long id){
         return ResponseEntity.ok(jobService.findJob(id));
     }
 
-    @GetMapping(params = {"categoryName"})
-    ResponseEntity<Set<JobResponseDto>> findJobByCategory(@RequestParam String categoryName){
-        return ResponseEntity.ok(jobService.findJobByCategoryName(categoryName));
-    }
 
-    @GetMapping
+    @GetMapping("/me")
     ResponseEntity<Set<JobResponseDto>> findOwnEmployerJobs(Authentication authentication){
         return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName()));
     }
