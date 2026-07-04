@@ -2,6 +2,7 @@ package com.luysot.jobodia.repository;
 
 import com.luysot.jobodia.model.Applications;
 import com.luysot.jobodia.model.EmployerProfiles;
+import com.luysot.jobodia.model.Jobs;
 import com.luysot.jobodia.model.SeekerProfiles;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,5 @@ public interface ApplicationRepository extends JpaRepository<Applications, Long>
     List<Applications> findByJobEmployerId(Long employerId);
 
     Optional<Applications> findByJobEmployerId_AndId(Long jobEmployerId, Long id);
+    Boolean existsByJobAndSeeker(Jobs job, SeekerProfiles seeker);
 }

@@ -14,6 +14,11 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"job_id", "seeker_id"}
+        )
+)
 public class Applications {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

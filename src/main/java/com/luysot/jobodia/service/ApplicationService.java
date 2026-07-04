@@ -9,6 +9,7 @@ import com.luysot.jobodia.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,9 @@ public class ApplicationService {
         Jobs job = jobRepository.findById(dto.jobId())
                 .orElseThrow(()-> new RuntimeException("Job not found"));
 
+        if(applicationRepository.existsByJobAndSeeker(job,seeker)){
+           throw new DuplicateKeyException("Application already exist!");
+        }
         Applications application = new Applications();
         application.setSeeker(seeker);
         application.setJob(job);
