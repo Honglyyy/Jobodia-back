@@ -7,6 +7,7 @@ import com.luysot.jobodia.service.IndustryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -28,16 +29,19 @@ public class IndustryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<IndustryResponseDto> addIndustry(@Valid @RequestBody IndustryRequestDto dto){
         return ResponseEntity.ok(industryService.addIndustry(dto));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<IndustryResponseDto> updateIndustry(@PathVariable Long id, @Valid @RequestBody IndustryRequestDto dto){
         return ResponseEntity.ok(industryService.updateIndustry(id,dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<?> deleteIndustry(@PathVariable Long id){
         industryService.deleteIndustry(id);
         return ResponseEntity.ok("Industry deleted!!");

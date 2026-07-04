@@ -75,11 +75,13 @@ public class JobController {
 
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<Set<JobResponseDto>> findOwnEmployerJobs(Authentication authentication){
         return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName()));
     }
 
     @GetMapping("/{id}/me")
+    @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<JobResponseDto> findOwnEmployerJob(Authentication authentication,@PathVariable Long id){
         return ResponseEntity.ok(jobService.findOwnEmployerJob(authentication.getName(), id));
     }

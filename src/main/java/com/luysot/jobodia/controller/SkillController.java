@@ -10,6 +10,7 @@ import com.luysot.jobodia.service.SkillService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class SkillController {
     private final SkillService skillService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<SkillResponseDto> addSkill(@Valid @RequestBody SkillRequestDto dto){
         return ResponseEntity.ok(skillService.addSkill(dto));
     }
@@ -38,6 +40,7 @@ public class SkillController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<String> deleteSkill(@PathVariable Long id){
         skillService.deleteSkill(id);
         return ResponseEntity.ok("Skill of id " + id + " is deleted!");
