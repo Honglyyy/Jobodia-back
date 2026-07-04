@@ -1,11 +1,9 @@
 package com.luysot.jobodia.dto.JobDTOs;
 
-import com.luysot.jobodia.model.Categories;
 import com.luysot.jobodia.model.enums.JobGender;
 import com.luysot.jobodia.model.enums.JobLevel;
 import com.luysot.jobodia.model.enums.JobSite;
 import com.luysot.jobodia.model.enums.JobTime;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 
@@ -75,9 +73,18 @@ public record JobRequestDto(
         @Future(message = "Expiration date must be in the future")
         LocalDateTime expiresAt,
 
-        Set<Long> categoriesId,
-        Set<Long> skillsId,
+        @NotEmpty(message = "At least one category is required")
+        Set<@NotNull(message = "Category id cannot be null") @Positive(message = "Category id must be positive") Long> categoriesId,
 
+        @NotEmpty(message = "At least one skill is required")
+        Set<@NotNull(message = "Skill id cannot be null") @Positive(message = "Skill id must be positive") Long> skillsId,
+
+        @NotNull(message = "Industry id is required")
+        @Positive(message = "Industry id must be positive")
         Long industriesId
 ) {
+    @AssertTrue(message = "Minimum salary must be less than or equal to maximum salary")
+    public boolean isSalaryRangeValid() {
+        return minSalary == null || maxSalary == null || minSalary.compareTo(maxSalary) <= 0;
+    }
 }

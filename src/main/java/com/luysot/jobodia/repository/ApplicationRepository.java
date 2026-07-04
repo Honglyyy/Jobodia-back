@@ -2,18 +2,20 @@ package com.luysot.jobodia.repository;
 
 import com.luysot.jobodia.model.Applications;
 import com.luysot.jobodia.model.EmployerProfiles;
+import com.luysot.jobodia.model.Jobs;
 import com.luysot.jobodia.model.SeekerProfiles;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ApplicationRepository extends JpaRepository<Applications, Long> {
-    List<Applications> findBySeeker(SeekerProfiles seeker);
+    Page<Applications> findBySeeker(SeekerProfiles seeker, Pageable pageable);
     Optional<Applications> findByIdAndSeeker(Long id, SeekerProfiles seeker);
     void deleteByIdAndSeeker(Long id, SeekerProfiles seeker);
-    List<Applications> findByJobEmployerId(Long employerId);
+    Page<Applications> findByJobEmployerId(Long employerId, Pageable pageable);
 
     Optional<Applications> findByJobEmployerId_AndId(Long jobEmployerId, Long id);
+    Boolean existsByJobAndSeeker(Jobs job, SeekerProfiles seeker);
 }

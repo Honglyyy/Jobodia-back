@@ -6,10 +6,9 @@ import com.luysot.jobodia.mapper.CategoryMapper;
 import com.luysot.jobodia.model.Categories;
 import com.luysot.jobodia.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +23,8 @@ public class CategoryService {
         return categoryMapper.toDto(categoryRepository.save(category));
     }
 
-    public Set<CategoryResponseDto> findCategories(){
-        return new HashSet<>(categoryRepository.findAll().stream()
-                .map(categoryMapper::toDto)
-                .toList());
+    public Page<CategoryResponseDto> findCategories(Pageable pageable){
+        return categoryRepository.findAll(pageable).map(categoryMapper::toDto);
     }
 
     public CategoryResponseDto findCategory(Long id){

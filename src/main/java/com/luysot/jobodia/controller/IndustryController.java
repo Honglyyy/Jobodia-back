@@ -6,10 +6,13 @@ import com.luysot.jobodia.dto.IndustryDTOs.IndustryResponseDto;
 import com.luysot.jobodia.service.IndustryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,8 +21,9 @@ public class IndustryController {
     private final IndustryService industryService;
 
     @GetMapping
-    ResponseEntity<Set<IndustryResponseDto>> findIndustries(){
-        return ResponseEntity.ok(industryService.findIndustries());
+    ResponseEntity<Page<IndustryResponseDto>> findIndustries(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(industryService.findIndustries(pageable));
     }
 
     @GetMapping("/{id}")
@@ -28,16 +32,19 @@ public class IndustryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<IndustryResponseDto> addIndustry(@Valid @RequestBody IndustryRequestDto dto){
         return ResponseEntity.ok(industryService.addIndustry(dto));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<IndustryResponseDto> updateIndustry(@PathVariable Long id, @Valid @RequestBody IndustryRequestDto dto){
         return ResponseEntity.ok(industryService.updateIndustry(id,dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<?> deleteIndustry(@PathVariable Long id){
         industryService.deleteIndustry(id);
         return ResponseEntity.ok("Industry deleted!!");

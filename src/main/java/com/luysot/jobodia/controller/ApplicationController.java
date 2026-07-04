@@ -6,12 +6,14 @@ import com.luysot.jobodia.dto.ApplicationDTOs.UpdateApplicationStatusRequestDto;
 import com.luysot.jobodia.service.ApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,8 +30,10 @@ public class ApplicationController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('SEEKER')")
-    ResponseEntity<List<ApplicationResponseDto>> findSeekerOwnApplications(Authentication authentication){
-        return ResponseEntity.ok(applicationService.findSeekerOwnApplications(authentication.getName()));
+    ResponseEntity<Page<ApplicationResponseDto>> findSeekerOwnApplications(
+            Authentication authentication,
+            @PageableDefault(size = 10, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(applicationService.findSeekerOwnApplications(authentication.getName(), pageable));
     }
 
     @GetMapping("/me/{id}")
@@ -47,8 +51,10 @@ public class ApplicationController {
 
     @GetMapping("/applicants")
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<List<ApplicationResponseDto>> findApplicants(Authentication authentication){
-        return ResponseEntity.ok(applicationService.findApplicants(authentication.getName()));
+    ResponseEntity<Page<ApplicationResponseDto>> findApplicants(
+            Authentication authentication,
+            @PageableDefault(size = 10, sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(applicationService.findApplicants(authentication.getName(), pageable));
     }
 
     @GetMapping("/applicants/{id}")
@@ -61,7 +67,7 @@ public class ApplicationController {
     @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<ApplicationResponseDto> updateApplicationStatus(
             @PathVariable Long id,
-            @RequestBody UpdateApplicationStatusRequestDto reqStatus,
+            @Valid @RequestBody UpdateApplicationStatusRequestDto reqStatus,
             Authentication authentication){
         return ResponseEntity.ok(applicationService.updateApplicationStatus(id,reqStatus,authentication.getName()));
     }

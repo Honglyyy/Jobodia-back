@@ -5,15 +5,16 @@ import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsRequestDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsResponseDto;
 import com.luysot.jobodia.dto.SkillsDTOs.SkillRequestDto;
 import com.luysot.jobodia.dto.SkillsDTOs.SkillResponseDto;
-import com.luysot.jobodia.model.Skills;
 import com.luysot.jobodia.service.SkillService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,13 +24,15 @@ public class SkillController {
     private final SkillService skillService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<SkillResponseDto> addSkill(@Valid @RequestBody SkillRequestDto dto){
         return ResponseEntity.ok(skillService.addSkill(dto));
     }
 
     @GetMapping
-    ResponseEntity<List<SkillResponseDto>> findSkills(){
-        return ResponseEntity.ok(skillService.findSkills());
+    ResponseEntity<Page<SkillResponseDto>> findSkills(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(skillService.findSkills(pageable));
     }
 
     @GetMapping("/{id}")
@@ -38,6 +41,7 @@ public class SkillController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<String> deleteSkill(@PathVariable Long id){
         skillService.deleteSkill(id);
         return ResponseEntity.ok("Skill of id " + id + " is deleted!");
