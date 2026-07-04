@@ -5,11 +5,13 @@ import com.luysot.jobodia.dto.CategoryDTOs.CategoryResponseDto;
 import com.luysot.jobodia.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,8 +20,9 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    ResponseEntity<Set<CategoryResponseDto>> findCategories(){
-        return ResponseEntity.ok(categoryService.findCategories());
+    ResponseEntity<Page<CategoryResponseDto>> findCategories(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(categoryService.findCategories(pageable));
     }
 
     @GetMapping("/{id}")

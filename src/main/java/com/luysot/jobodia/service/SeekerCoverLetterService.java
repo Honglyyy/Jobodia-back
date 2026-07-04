@@ -9,6 +9,8 @@ import com.luysot.jobodia.repository.SeekerProfileRepository;
 import com.luysot.jobodia.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -100,21 +102,18 @@ public class SeekerCoverLetterService {
         seekerCoverLetterRepository.save(saved);
     }
 
-    public List<SeekerCoverLetterResponseDto> findAllSeekerOwnCoverLetter(String email) {
+    public Page<SeekerCoverLetterResponseDto> findAllSeekerOwnCoverLetter(String email, Pageable pageable) {
         Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found!!"));
 
-        List<SeekerCoverLetters> coverLetters = seekerCoverLetterRepository.findBySeeker(seekerProfiles);
-
-        return coverLetters.stream().map(coverLetter -> SeekerCoverLetterResponseDto.builder()
+        return seekerCoverLetterRepository.findBySeeker(seekerProfiles, pageable).map(coverLetter -> SeekerCoverLetterResponseDto.builder()
                         .id(coverLetter.getId())
                         .title(coverLetter.getTitle())
                         .coverLetterUrl(coverLetter.getCoverLetterUrl())
-                        .build())
-                .toList();
+                        .build());
     }
 
     public SeekerCoverLetterResponseDto findSeekerOwnCoverLetter(Long id,String email){

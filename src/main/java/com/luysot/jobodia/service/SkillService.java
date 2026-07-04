@@ -6,9 +6,9 @@ import com.luysot.jobodia.mapper.SkillMapper;
 import com.luysot.jobodia.model.Skills;
 import com.luysot.jobodia.repository.SkillRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +24,8 @@ public class SkillService {
         return skillMapper.toDto(skills);
     }
 
-    public List<SkillResponseDto> findSkills(){
-        return skillRepository.findAll().stream().map(skillMapper::toDto).toList();
+    public Page<SkillResponseDto> findSkills(Pageable pageable){
+        return skillRepository.findAll(pageable).map(skillMapper::toDto);
     }
 
     public SkillResponseDto findSkill(Long id){

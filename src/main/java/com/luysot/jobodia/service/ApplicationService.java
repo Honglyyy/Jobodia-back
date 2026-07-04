@@ -10,11 +10,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,14 +52,11 @@ public class ApplicationService {
         return applicationMapper.toDto(savedApplication);
     }
 
-    public List<ApplicationResponseDto> findSeekerOwnApplications(String email){
+    public Page<ApplicationResponseDto> findSeekerOwnApplications(String email, Pageable pageable){
         SeekerProfiles seeker = getSeekerProfiles(email);
 
-        List<Applications> applications = applicationRepository.findBySeeker(seeker);
-
-        return applications.stream()
-                .map(applicationMapper::toDto)
-                .toList();
+        return applicationRepository.findBySeeker(seeker, pageable)
+                .map(applicationMapper::toDto);
     }
 
     public ApplicationResponseDto findSeekerOwnApplication(Long id, String email){
@@ -78,14 +75,11 @@ public class ApplicationService {
         applicationRepository.deleteByIdAndSeeker(id,seeker);
     }
 
-    public List<ApplicationResponseDto> findApplicants(String email){
+    public Page<ApplicationResponseDto> findApplicants(String email, Pageable pageable){
         EmployerProfiles employer = getEmployerProfiles(email);
 
-        List<Applications> applications = applicationRepository.findByJobEmployerId(employer.getId());
-
-        return applications.stream()
-                .map(applicationMapper::toDto)
-                .toList();
+        return applicationRepository.findByJobEmployerId(employer.getId(), pageable)
+                .map(applicationMapper::toDto);
     }
 
     public ApplicationResponseDto findApplicant(Long applicationId,String email){

@@ -10,16 +10,15 @@ import com.luysot.jobodia.model.enums.JobTime;
 import com.luysot.jobodia.repository.*;
 import com.luysot.jobodia.service.specification.JobSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -110,18 +109,19 @@ public class JobService {
         jobRepository.deleteByIdAndEmployer(id,employer);
     }
 
-    public List<JobResponseDto> findJobs(){
-        return new ArrayList<>(jobRepository.findAll().stream().map(jobMapper::toDto).toList());
+    public Page<JobResponseDto> findJobs(Pageable pageable){
+        return jobRepository.findAll(pageable).map(jobMapper::toDto);
     }
 
-    public List<JobResponseDto> searchJob(
+    public Page<JobResponseDto> searchJob(
             String title,
             String industry,
             String company,
             String category,
             JobTime jobType,
             JobLevel jobLevel,
-            JobSite jobSite
+            JobSite jobSite,
+            Pageable pageable
     ){
         Specification<Jobs> spec = (root, query, cb) -> cb.conjunction();
         if (title != null && !title.isBlank()) {
@@ -153,16 +153,11 @@ public class JobService {
         }
 
 
-        return jobRepository.findAll(spec)
-                .stream()
-                .map(jobMapper::toDto)
-                .toList();
+        return jobRepository.findAll(spec, pageable).map(jobMapper::toDto);
     }
 
-    public List<JobResponseDto> findNewlyAddedJob(){
-        return jobRepository.findTop5ByOrderByCreatedAtDesc().stream()
-                .map(jobMapper::toDto)
-                .toList();
+    public Page<JobResponseDto> findNewlyAddedJob(Pageable pageable){
+        return jobRepository.findAll(pageable).map(jobMapper::toDto);
     }
 
     public JobResponseDto findJob(Long id){
@@ -171,12 +166,11 @@ public class JobService {
     }
 
 
-    public Set<JobResponseDto> findOwnEmployerJobs(String email){
+    public Page<JobResponseDto> findOwnEmployerJobs(String email, Pageable pageable){
         Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
         EmployerProfiles employer = employerProfileRepository.findByUser(user).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
 
-        Set<Jobs> job = jobRepository.findByEmployer(employer);
-        return job.stream().map(jobMapper::toDto).collect(Collectors.toSet());
+        return jobRepository.findByEmployer(employer, pageable).map(jobMapper::toDto);
     }
 
     public JobResponseDto findOwnEmployerJob(String email, Long id){

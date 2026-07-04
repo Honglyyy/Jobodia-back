@@ -2,21 +2,20 @@ package com.luysot.jobodia.controller;
 
 import com.luysot.jobodia.dto.JobDTOs.JobRequestDto;
 import com.luysot.jobodia.dto.JobDTOs.JobResponseDto;
-import com.luysot.jobodia.model.Jobs;
 import com.luysot.jobodia.model.enums.JobLevel;
 import com.luysot.jobodia.model.enums.JobSite;
 import com.luysot.jobodia.model.enums.JobTime;
 import com.luysot.jobodia.service.JobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,28 +43,31 @@ public class JobController {
     }
 
     @GetMapping
-    ResponseEntity<List<JobResponseDto>> findJobs(){
-        return ResponseEntity.ok(jobService.findJobs());
+    ResponseEntity<Page<JobResponseDto>> findJobs(
+            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(jobService.findJobs(pageable));
     }
 
     @GetMapping("/search")
-    ResponseEntity<List<JobResponseDto>> search(
+    ResponseEntity<Page<JobResponseDto>> search(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String industry,
             @RequestParam(required = false) String company,
             @RequestParam(required = false) String category,
             @RequestParam(required = false)JobTime jobTime,
             @RequestParam(required = false) JobLevel jobLevel,
-            @RequestParam(required = false) JobSite jobSite
+            @RequestParam(required = false) JobSite jobSite,
+            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
             ){
         return ResponseEntity.ok(jobService.searchJob(
-                title,industry,company, category,jobTime, jobLevel,jobSite
+                title,industry,company, category,jobTime, jobLevel,jobSite, pageable
         ));
     }
 
     @GetMapping("/newly-added")
-    ResponseEntity<List<JobResponseDto>> findNewlyAddedJobs(){
-        return ResponseEntity.ok(jobService.findNewlyAddedJob());
+    ResponseEntity<Page<JobResponseDto>> findNewlyAddedJobs(
+            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(jobService.findNewlyAddedJob(pageable));
     }
 
     @GetMapping("/{id}")
@@ -76,8 +78,10 @@ public class JobController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<Set<JobResponseDto>> findOwnEmployerJobs(Authentication authentication){
-        return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName()));
+    ResponseEntity<Page<JobResponseDto>> findOwnEmployerJobs(
+            Authentication authentication,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName(), pageable));
     }
 
     @GetMapping("/{id}/me")

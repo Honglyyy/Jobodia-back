@@ -9,6 +9,8 @@ import com.luysot.jobodia.repository.SeekerResumeRepository;
 import com.luysot.jobodia.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -100,20 +102,18 @@ public class SeekerResumeService {
         seekerResumeRepository.save(saved);
     }
 
-    public List<SeekerResumeResponseDto> findAllSeekerOwnResume(String email) {
+    public Page<SeekerResumeResponseDto> findAllSeekerOwnResume(String email, Pageable pageable) {
         Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found!!"));
-        List<SeekerResumes> resumes = seekerResumeRepository.findBySeeker(seekerProfiles);
 
-        return resumes.stream().map(resume -> SeekerResumeResponseDto.builder()
+        return seekerResumeRepository.findBySeeker(seekerProfiles, pageable).map(resume -> SeekerResumeResponseDto.builder()
                 .id(resume.getId())
                 .title(resume.getTitle())
                 .resumeUrl(resume.getResumeUrl())
-                .build())
-                .toList();
+                .build());
     }
 
     public SeekerResumeResponseDto findSeekerOwnResume(Long id,String email){
