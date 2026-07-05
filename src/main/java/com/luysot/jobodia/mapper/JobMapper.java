@@ -1,10 +1,10 @@
 package com.luysot.jobodia.mapper;
 
 import com.luysot.jobodia.dto.JobDTOs.JobResponseDto;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.model.*;
 import com.luysot.jobodia.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -49,12 +49,12 @@ public class JobMapper {
     }
 
     public Jobs toEntity(JobResponseDto response) {
-        Industries industries = industryRepository.findById(response.industriesId()) .orElseThrow(() -> new RuntimeException("Industry not found"));
+        Industries industries = industryRepository.findById(response.industriesId()) .orElseThrow(() -> new ResourceNotFoundException("Industry not found"));
         Set<Categories> categories = new HashSet<>(categoryRepository.findAllById(response.categoriesId()));
 
         Set<Skills> skills = new HashSet<>(skillRepository.findAllById(response.skillsId()));
 
-        EmployerProfiles employerProfiles = employerProfileRepository.findById(response.employer().id()).orElseThrow(()->new UsernameNotFoundException("User not found"));
+        EmployerProfiles employerProfiles = employerProfileRepository.findById(response.employer().id()).orElseThrow(()->new ResourceNotFoundException("Employer profile not found"));
 
         return Jobs.builder()
                 .id(response.id())

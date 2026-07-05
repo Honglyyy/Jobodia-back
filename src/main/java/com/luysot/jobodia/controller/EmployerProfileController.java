@@ -6,6 +6,7 @@ import com.luysot.jobodia.service.EmployerProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,7 +30,7 @@ public class EmployerProfileController {
             @RequestPart(name = "file",required = false) MultipartFile file,
             Authentication authentication
     ) throws IOException {
-        return ResponseEntity.ok(employerProfileService.createProfile(dto,file,authentication.getName()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(employerProfileService.createProfile(dto,file,authentication.getName()));
     }
 
 //    @PreAuthorize("hasRole('EMPLOYER')")

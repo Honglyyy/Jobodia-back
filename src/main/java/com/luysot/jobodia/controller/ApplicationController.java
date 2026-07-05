@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class ApplicationController {
     @PreAuthorize("hasRole('SEEKER')")
     ResponseEntity<ApplicationResponseDto> apply(Authentication authentication,@Valid @RequestBody ApplicationRequestDto request)
     {
-        return ResponseEntity.ok(applicationService.apply(authentication.getName(),request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(applicationService.apply(authentication.getName(),request));
     }
 
     @GetMapping("/me")
@@ -44,9 +45,9 @@ public class ApplicationController {
 
     @DeleteMapping("/me/{id}")
     @PreAuthorize("hasRole('SEEKER')")
-    ResponseEntity<String> deleteSeekerOwnApplication(@PathVariable Long id, Authentication authentication){
+    ResponseEntity<Void> deleteSeekerOwnApplication(@PathVariable Long id, Authentication authentication){
         applicationService.deleteSeekerOwnApplication(id, authentication.getName());
-        return ResponseEntity.ok("Application deleted.");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/applicants")

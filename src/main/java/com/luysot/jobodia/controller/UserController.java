@@ -8,6 +8,7 @@ import com.luysot.jobodia.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,36 +19,29 @@ public class UserController {
 
     @PostMapping("/register")
     ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequestDto dto){
-        return ResponseEntity.ok(userService.register(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(dto));
     }
 
     @PostMapping("/verify-otp")
-    void sendVerifyOtp(@Valid @RequestBody VerifyUserDto verifyUserDto){
+    ResponseEntity<Void> sendVerifyOtp(@Valid @RequestBody VerifyUserDto verifyUserDto){
         userService.verifyOtp(verifyUserDto.email(),verifyUserDto.otp());
+        return ResponseEntity.noContent().build();
     }
 
 
     @PostMapping("/send-reset-otp")
-    public void sendResetOtp(@RequestParam String email) {
-        try{
-            userService.sendResetOtp(email);
-        }
-        catch(Exception e){
-            throw new RuntimeException("Failed to send reset otp");
-        }
+    public ResponseEntity<Void> sendResetOtp(@RequestParam String email) {
+        userService.sendResetOtp(email);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        try {
-            userService.resetPassword(
-                    request.otp(),
-                    request.email(),
-                    request.password()
-            );
-            return ResponseEntity.ok("Password reset successful");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(
+                request.otp(),
+                request.email(),
+                request.password()
+        );
+        return ResponseEntity.noContent().build();
     }
 }

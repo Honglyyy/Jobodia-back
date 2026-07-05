@@ -2,6 +2,7 @@ package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.IndustryDTOs.IndustryRequestDto;
 import com.luysot.jobodia.dto.IndustryDTOs.IndustryResponseDto;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.mapper.IndustryMapper;
 import com.luysot.jobodia.model.Industries;
 import com.luysot.jobodia.repository.IndustryRepository;
@@ -28,11 +29,11 @@ public class IndustryService {
     }
 
     public IndustryResponseDto findIndustry(Long id){
-        return industryMapper.toDto(industryRepository.findById(id).orElseThrow(()->new RuntimeException("Industry not found!!")));
+        return industryMapper.toDto(industryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Industry not found")));
     }
 
     public IndustryResponseDto updateIndustry(Long id, IndustryRequestDto dto){
-        Industries industry = industryRepository.findById(id).orElseThrow(()->new RuntimeException("Industry not found!!"));
+        Industries industry = industryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Industry not found"));
         industry.setIndustryName(dto.industryName());
 
         industryRepository.save(industry);
@@ -41,6 +42,7 @@ public class IndustryService {
     }
 
     public void deleteIndustry(Long id){
-        industryRepository.deleteById(id);
+        Industries industry = industryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Industry not found"));
+        industryRepository.delete(industry);
     }
 }

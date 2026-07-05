@@ -2,6 +2,9 @@ package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.EmployerProfileDTOs.EmployerProfileRequestDto;
 import com.luysot.jobodia.dto.EmployerProfileDTOs.EmployerProfileResponseDto;
+import com.luysot.jobodia.exception.DuplicateResourceException;
+import com.luysot.jobodia.exception.InvalidRequestException;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.mapper.EmployerProfileMapper;
 import com.luysot.jobodia.model.EmployerProfiles;
 import com.luysot.jobodia.model.Users;
@@ -42,10 +45,10 @@ public class EmployerProfileService {
 
     @Transactional
     public EmployerProfileResponseDto createProfile(EmployerProfileRequestDto request, MultipartFile file , String email) throws IOException{
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         if(employerProfileRepository.findByUser(user).isPresent()){
-            throw new RuntimeException("Profile already exists!");
+            throw new DuplicateResourceException("Profile already exists");
         }
 
         EmployerProfiles employerProfile = new EmployerProfiles();
@@ -60,7 +63,7 @@ public class EmployerProfileService {
             String contentType = file.getContentType();
 
             if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-                throw new IllegalArgumentException("Only image files are allowed.");
+                throw new InvalidRequestException("Only image files are allowed.");
             }
 
             String uploadDir = "uploads/employer-profiles/" + user.getUsername();
@@ -93,7 +96,7 @@ public class EmployerProfileService {
     }
 
     public Resource loadCompanyLogo(Long id) throws FileNotFoundException, MalformedURLException {
-        EmployerProfiles employerProfiles = employerProfileRepository.findById(id).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
+        EmployerProfiles employerProfiles = employerProfileRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Employer profile not found"));
 
         String storedName = employerProfiles.getCompanyLogoStoredName();
 
