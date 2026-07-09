@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,13 @@ public class SeekerResumeController {
             @RequestParam String title,
             @RequestParam MultipartFile file,
             Authentication authentication
-            ) throws IOException {
+    ) throws IOException {
         seekerResumeService.uploadSeekerResume(
                 authentication.getName(),
                 title,
                 file
         );
-        return ResponseEntity.ok("Resume uploaded!!");
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/me")
@@ -54,6 +55,6 @@ public class SeekerResumeController {
     @PreAuthorize("hasRole('SEEKER')")
     ResponseEntity<?> deleteSeekerOwnResume(@PathVariable Long id, Authentication authentication){
         seekerResumeService.deleteSeekerOwnResume(id, authentication.getName());
-        return ResponseEntity.ok("Resume deleted!");
+        return ResponseEntity.noContent().build();
     }
 }

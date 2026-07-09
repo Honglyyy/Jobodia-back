@@ -4,6 +4,9 @@ import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerProfileRequestDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerProfileResponseDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsRequestDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsResponseDto;
+import com.luysot.jobodia.exception.DuplicateResourceException;
+import com.luysot.jobodia.exception.InvalidRequestException;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.mapper.SeekerProfileMapper;
 import com.luysot.jobodia.mapper.SkillMapper;
 import com.luysot.jobodia.model.SeekerProfiles;
@@ -16,7 +19,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,9 +51,9 @@ public class SeekerProfileService {
     );
 
     public SeekerSkillsResponseDto myProfile(String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User with the following email is not found!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
-        SeekerProfiles seeker = seekerProfileRepository.findByUser(user).orElseThrow(()->new RuntimeException("User with the following email is not found!"));
+        SeekerProfiles seeker = seekerProfileRepository.findByUser(user).orElseThrow(()->new ResourceNotFoundException("Seeker profile not found"));
 
 
         return SeekerSkillsResponseDto.builder()
@@ -71,10 +73,10 @@ public class SeekerProfileService {
 
     @Transactional
     public SeekerProfileResponseDto createProfile(SeekerProfileRequestDto request, MultipartFile file , String email) throws IOException{
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         if(seekerProfileRepository.findByUser(user).isPresent()){
-            throw new RuntimeException("Profile already exists!");
+            throw new DuplicateResourceException("Profile already exists");
         }
 
         SeekerProfiles seekerProfile = new SeekerProfiles();
@@ -88,7 +90,7 @@ public class SeekerProfileService {
             String contentType = file.getContentType();
 
             if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-                throw new IllegalArgumentException("Only image files are allowed.");
+                throw new InvalidRequestException("Only image files are allowed.");
             }
 
             String uploadDir = "uploads/seeker-profiles/" + user.getUsername();
@@ -114,8 +116,8 @@ public class SeekerProfileService {
     }
 
     public Resource viewSeekerProfilePicture(String email) throws FileNotFoundException, MalformedURLException {
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
-        SeekerProfiles seekerProfiles = seekerProfileRepository.findByUser(user).orElseThrow(()->new RuntimeException("User by the following email is not found!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        SeekerProfiles seekerProfiles = seekerProfileRepository.findByUser(user).orElseThrow(()->new ResourceNotFoundException("Seeker profile not found"));
 
         String storedName = seekerProfiles.getProfilePictureStoredName();
 
@@ -137,11 +139,17 @@ public class SeekerProfileService {
     }
 
     public SeekerSkillsResponseDto addSeekerSkills(String email, SeekerSkillsRequestDto dto) {
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (dto.skillId() == null || dto.skillId().isEmpty()) {
+            throw new InvalidRequestException("At least one skill id is required");
+        }
         Set<Skills> newSkills = new HashSet<>(skillRepository.findAllById(dto.skillId()));
+        if (newSkills.size() != dto.skillId().size()) {
+            throw new InvalidRequestException("One or more skill ids are invalid");
+        }
 
-        SeekerProfiles seeker = seekerProfileRepository.findByUser(user).orElseThrow(() -> new UsernameNotFoundException("Email not found!!"));
+        SeekerProfiles seeker = seekerProfileRepository.findByUser(user).orElseThrow(() -> new ResourceNotFoundException("Seeker profile not found"));
 
         seeker.getSkills().addAll(newSkills);
 

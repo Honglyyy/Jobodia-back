@@ -2,6 +2,7 @@ package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.SkillsDTOs.SkillRequestDto;
 import com.luysot.jobodia.dto.SkillsDTOs.SkillResponseDto;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.mapper.SkillMapper;
 import com.luysot.jobodia.model.Skills;
 import com.luysot.jobodia.repository.SkillRepository;
@@ -29,11 +30,11 @@ public class SkillService {
     }
 
     public SkillResponseDto findSkill(Long id){
-        return skillMapper.toDto(skillRepository.findById(id).orElseThrow(()->new RuntimeException("Skill not found!")));
+        return skillMapper.toDto(skillRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Skill not found")));
     }
 
     public SkillResponseDto updateSkill(Long id,SkillRequestDto dto){
-        Skills existingSkill = skillRepository.findById(id).orElseThrow(()->new RuntimeException("Skill not found!"));
+        Skills existingSkill = skillRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Skill not found"));
 
         existingSkill.setSkillName(dto.skillName());
 
@@ -41,6 +42,7 @@ public class SkillService {
     }
 
     public void deleteSkill(Long id){
-        skillRepository.deleteById(id);
+        Skills existingSkill = skillRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Skill not found"));
+        skillRepository.delete(existingSkill);
     }
 }

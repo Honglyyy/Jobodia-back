@@ -4,6 +4,7 @@ import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerProfileRequestDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerProfileResponseDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsRequestDto;
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerSkillsResponseDto;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.model.SeekerProfiles;
 import com.luysot.jobodia.model.Users;
 import com.luysot.jobodia.repository.SeekerProfileRepository;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +46,7 @@ public class SeekerProfileController {
             @RequestPart(name = "file",required = false) MultipartFile file,
             Authentication authentication
             ) throws IOException {
-        return ResponseEntity.ok(seekerProfileService.createProfile(dto,file,authentication.getName()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(seekerProfileService.createProfile(dto,file,authentication.getName()));
     }
 
     @GetMapping("/picture")
@@ -56,11 +58,11 @@ public class SeekerProfileController {
         Resource resource = seekerProfileService.viewSeekerProfilePicture(authentication.getName());
 
         Users user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         SeekerProfiles seekerProfile = seekerProfileRepository
                 .findByUser(user)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("Seeker profile not found"));
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(

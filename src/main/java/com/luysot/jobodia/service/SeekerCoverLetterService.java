@@ -1,6 +1,8 @@
 package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerCoverLetterResponseDto;
+import com.luysot.jobodia.exception.InvalidRequestException;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.model.SeekerCoverLetters;
 import com.luysot.jobodia.model.SeekerProfiles;
 import com.luysot.jobodia.model.Users;
@@ -11,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,15 +40,15 @@ public class SeekerCoverLetterService {
 
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("User not found"));
 
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
 
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Resume file is required");
+            throw new InvalidRequestException("Cover letter file is required");
         }
 
         String contentType = file.getContentType();
@@ -55,7 +56,7 @@ public class SeekerCoverLetterService {
         if (contentType == null ||
                 !ALLOWED_TYPES.contains(contentType)) {
 
-            throw new IllegalArgumentException(
+            throw new InvalidRequestException(
                     "Only PDF files are allowed");
         }
 
@@ -103,11 +104,11 @@ public class SeekerCoverLetterService {
     }
 
     public Page<SeekerCoverLetterResponseDto> findAllSeekerOwnCoverLetter(String email, Pageable pageable) {
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
 
         return seekerCoverLetterRepository.findBySeeker(seekerProfiles, pageable).map(coverLetter -> SeekerCoverLetterResponseDto.builder()
                         .id(coverLetter.getId())
@@ -117,12 +118,12 @@ public class SeekerCoverLetterService {
     }
 
     public SeekerCoverLetterResponseDto findSeekerOwnCoverLetter(Long id,String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
-        SeekerCoverLetters coverLetter = seekerCoverLetterRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
+        SeekerCoverLetters coverLetter = seekerCoverLetterRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new ResourceNotFoundException("Cover letter not found"));
 
 
         return SeekerCoverLetterResponseDto.builder().id(coverLetter.getId()).title(coverLetter.getTitle()).coverLetterUrl(coverLetter.getCoverLetterUrl()).build();
@@ -130,11 +131,13 @@ public class SeekerCoverLetterService {
 
     @Transactional
     public void deleteSeekerOwnCoverLetter(Long id, String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
+        seekerCoverLetterRepository.findByIdAndSeeker(id, seekerProfiles)
+                .orElseThrow(() -> new ResourceNotFoundException("Cover letter not found"));
         seekerCoverLetterRepository.deleteByIdAndSeeker(id,seekerProfiles);
     }
 }

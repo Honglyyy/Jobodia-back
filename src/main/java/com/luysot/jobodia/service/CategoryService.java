@@ -2,6 +2,7 @@ package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.CategoryDTOs.CategoryRequestDto;
 import com.luysot.jobodia.dto.CategoryDTOs.CategoryResponseDto;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.mapper.CategoryMapper;
 import com.luysot.jobodia.model.Categories;
 import com.luysot.jobodia.repository.CategoryRepository;
@@ -28,11 +29,11 @@ public class CategoryService {
     }
 
     public CategoryResponseDto findCategory(Long id){
-        return categoryMapper.toDto(categoryRepository.findById(id).orElseThrow(()->new RuntimeException("Category not found!!")));
+        return categoryMapper.toDto(categoryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Category not found")));
     }
 
     public CategoryResponseDto updateCategory(Long id, CategoryRequestDto dto){
-        Categories category = categoryRepository.findById(id).orElseThrow(()->new RuntimeException("Category not found!!"));
+        Categories category = categoryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Category not found"));
         category.setCategoryName(dto.categoryName());
 
         categoryRepository.save(category);
@@ -41,6 +42,7 @@ public class CategoryService {
     }
 
     public void deleteCategory(Long id){
-        categoryRepository.deleteById(id);
+        Categories category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        categoryRepository.delete(category);
     }
 }

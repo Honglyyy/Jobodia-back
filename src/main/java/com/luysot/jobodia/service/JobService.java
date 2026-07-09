@@ -7,18 +7,21 @@ import com.luysot.jobodia.model.*;
 import com.luysot.jobodia.model.enums.JobLevel;
 import com.luysot.jobodia.model.enums.JobSite;
 import com.luysot.jobodia.model.enums.JobTime;
+import com.luysot.jobodia.exception.DuplicateResourceException;
+import com.luysot.jobodia.exception.InvalidRequestException;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.repository.*;
 import com.luysot.jobodia.service.specification.JobSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,14 +36,14 @@ public class JobService {
     private final JobSpecification jobSpecification;
 
     public JobResponseDto addJob(String email, JobRequestDto request){
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
-        EmployerProfiles employer = employerProfileRepository.findByUser(user).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
+        Users user = findUserByEmail(email);
+        EmployerProfiles employer = findEmployerByUser(user);
 
-        Set<Categories> categories = new HashSet<>(categoryRepository.findAllById(request.categoriesId()));
-        Set<Skills> skills = new HashSet<>(skillRepository.findAllById(request.skillsId()));
+        Set<Categories> categories = loadCategories(request.categoriesId());
+        Set<Skills> skills = loadSkills(request.skillsId());
 
         Industries industry = industryRepository.findById(request.industriesId())
-                .orElseThrow(() -> new RuntimeException("Industry not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Industry not found"));
 
         Jobs job = new Jobs();
         job.setTitle(request.title());
@@ -71,11 +74,11 @@ public class JobService {
 
     public JobResponseDto updateJob(Long id, JobRequestDto request, String email){
         Jobs existingJob = jobMapper.toEntity(findOwnEmployerJob(email,id));
-        Set<Categories> categories = new HashSet<>(categoryRepository.findAllById(request.categoriesId()));
-        Set<Skills> skills = new HashSet<>(skillRepository.findAllById(request.skillsId()));
+        Set<Categories> categories = loadCategories(request.categoriesId());
+        Set<Skills> skills = loadSkills(request.skillsId());
 
         Industries industry = industryRepository.findById(request.industriesId())
-                .orElseThrow(() -> new RuntimeException("Industry not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Industry not found"));
 
         existingJob.setTitle(request.title());
         existingJob.setMinSalary(request.minSalary());
@@ -104,8 +107,8 @@ public class JobService {
 
     @Transactional
     public void deleteJob(Long id, String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
-        EmployerProfiles employer = employerProfileRepository.findByUser(user).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
+        EmployerProfiles employer = findEmployerByUser(findUserByEmail(email));
+        findOwnEmployerJob(email, id);
         jobRepository.deleteByIdAndEmployer(id,employer);
     }
 
@@ -161,23 +164,56 @@ public class JobService {
     }
 
     public JobResponseDto findJob(Long id){
-        Jobs job = jobRepository.findById(id).orElseThrow(()->new RuntimeException("Job not found"));
+        Jobs job = jobRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Job not found"));
         return jobMapper.toDto(job);
     }
 
 
     public Page<JobResponseDto> findOwnEmployerJobs(String email, Pageable pageable){
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
-        EmployerProfiles employer = employerProfileRepository.findByUser(user).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
+        EmployerProfiles employer = findEmployerByUser(findUserByEmail(email));
 
         return jobRepository.findByEmployer(employer, pageable).map(jobMapper::toDto);
     }
 
     public JobResponseDto findOwnEmployerJob(String email, Long id){
-        Users user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
-        EmployerProfiles employer = employerProfileRepository.findByUser(user).orElseThrow(()->new UsernameNotFoundException("User not found!!"));
+        EmployerProfiles employer = findEmployerByUser(findUserByEmail(email));
 
-        Jobs job = jobRepository.findByIdAndEmployer(id,employer).orElseThrow(()->new RuntimeException("Job not found"));
+        Jobs job = jobRepository.findByIdAndEmployer(id,employer).orElseThrow(()->new ResourceNotFoundException("Job not found"));
         return jobMapper.toDto(job);
+    }
+
+    private Users findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private EmployerProfiles findEmployerByUser(Users user) {
+        return employerProfileRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Employer profile not found"));
+    }
+
+    private Set<Categories> loadCategories(Set<Long> categoryIds) {
+        Set<Categories> categories = new HashSet<>(categoryRepository.findAllById(categoryIds));
+        ensureAllIdsLoaded("Category", categoryIds, categories.stream().map(Categories::getId).collect(Collectors.toSet()));
+        return categories;
+    }
+
+    private Set<Skills> loadSkills(Set<Long> skillIds) {
+        Set<Skills> skills = new HashSet<>(skillRepository.findAllById(skillIds));
+        ensureAllIdsLoaded("Skill", skillIds, skills.stream().map(Skills::getId).collect(Collectors.toSet()));
+        return skills;
+    }
+
+    private void ensureAllIdsLoaded(String label, Set<Long> requestedIds, Set<Long> loadedIds) {
+        if (requestedIds == null || requestedIds.isEmpty()) {
+            throw new InvalidRequestException(label + " ids are required");
+        }
+
+        Set<Long> missingIds = new HashSet<>(requestedIds);
+        missingIds.removeAll(loadedIds);
+
+        if (!missingIds.isEmpty()) {
+            throw new InvalidRequestException("Invalid " + label.toLowerCase() + " id(s): " + missingIds);
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.luysot.jobodia.controller;
 
 import com.luysot.jobodia.dto.UsersDTOs.AuthRequest;
 import com.luysot.jobodia.mapper.UserMapper;
+import com.luysot.jobodia.exception.ForbiddenActionException;
 import com.luysot.jobodia.model.Users;
 import com.luysot.jobodia.repository.UserRepository;
 import com.luysot.jobodia.util.JwtUtil;
@@ -31,20 +32,14 @@ public class AuthController {
                 .orElseThrow(()->new UsernameNotFoundException("User not found!"));
 
         if(isVerifiedUser.getIsVerified()){
-            try {
-                UsernamePasswordAuthenticationToken user =
-                        new UsernamePasswordAuthenticationToken(authRequest.email(),authRequest.password());
+            UsernamePasswordAuthenticationToken user =
+                    new UsernamePasswordAuthenticationToken(authRequest.email(),authRequest.password());
 
-                authenticationManager.authenticate(user);
-                return ResponseEntity.ok(jwtUtil.generateToken(isVerifiedUser));
-            }
-            catch (Exception e){
-                e.printStackTrace();
-                throw e;
-            }
+            authenticationManager.authenticate(user);
+            return ResponseEntity.ok(jwtUtil.generateToken(isVerifiedUser));
         }
         else{
-            return ResponseEntity.badRequest().body("User is not verify.");
+            throw new ForbiddenActionException("User account is not verified");
         }
     }
 }

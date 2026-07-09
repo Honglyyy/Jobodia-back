@@ -1,6 +1,8 @@
 package com.luysot.jobodia.service;
 
 import com.luysot.jobodia.dto.SeekerProfileDTOs.SeekerResumeResponseDto;
+import com.luysot.jobodia.exception.InvalidRequestException;
+import com.luysot.jobodia.exception.ResourceNotFoundException;
 import com.luysot.jobodia.model.SeekerProfiles;
 import com.luysot.jobodia.model.SeekerResumes;
 import com.luysot.jobodia.model.Users;
@@ -11,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,15 +40,15 @@ public class SeekerResumeService {
 
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("User not found"));
 
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
 
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Resume file is required");
+            throw new InvalidRequestException("Resume file is required");
         }
 
         String contentType = file.getContentType();
@@ -55,7 +56,7 @@ public class SeekerResumeService {
         if (contentType == null ||
                 !ALLOWED_TYPES.contains(contentType)) {
 
-            throw new IllegalArgumentException(
+            throw new InvalidRequestException(
                     "Only PDF files are allowed");
         }
 
@@ -103,11 +104,11 @@ public class SeekerResumeService {
     }
 
     public Page<SeekerResumeResponseDto> findAllSeekerOwnResume(String email, Pageable pageable) {
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
 
         return seekerResumeRepository.findBySeeker(seekerProfiles, pageable).map(resume -> SeekerResumeResponseDto.builder()
                 .id(resume.getId())
@@ -117,12 +118,12 @@ public class SeekerResumeService {
     }
 
     public SeekerResumeResponseDto findSeekerOwnResume(Long id,String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
-        SeekerResumes resume = seekerResumeRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
+        SeekerResumes resume = seekerResumeRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new ResourceNotFoundException("Resume not found"));
 
 
         return SeekerResumeResponseDto.builder().id(resume.getId()).title(resume.getTitle()).resumeUrl(resume.getResumeUrl()).build();
@@ -130,11 +131,13 @@ public class SeekerResumeService {
 
     @Transactional
     public void deleteSeekerOwnResume(Long id, String email){
-        Users user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found!!"));
+                        new ResourceNotFoundException("Seeker profile not found"));
+        seekerResumeRepository.findByIdAndSeeker(id, seekerProfiles)
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found"));
         seekerResumeRepository.deleteByIdAndSeeker(id,seekerProfiles);
     }
 }

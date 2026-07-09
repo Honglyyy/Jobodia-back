@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +27,12 @@ public class JobController {
     @PostMapping
     @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<JobResponseDto> addJob(@Valid @RequestBody JobRequestDto request, Authentication authentication){
-        return ResponseEntity.ok(jobService.addJob(authentication.getName(),request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(jobService.addJob(authentication.getName(),request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<JobResponseDto> updateJob(@Valid @PathVariable Long id,@RequestBody JobRequestDto request, Authentication authentication){
+    ResponseEntity<JobResponseDto> updateJob(@Valid @PathVariable Long id,@Valid @RequestBody JobRequestDto request, Authentication authentication){
         return ResponseEntity.ok(jobService.updateJob(id,request,authentication.getName()));
     }
 
@@ -39,7 +40,7 @@ public class JobController {
     @PreAuthorize("hasRole('EMPLOYER')")
     ResponseEntity<?> deleteJob(@PathVariable Long id, Authentication authentication){
         jobService.deleteJob(id,authentication.getName());
-        return ResponseEntity.ok("Job deleted");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
