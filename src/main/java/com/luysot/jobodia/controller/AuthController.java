@@ -28,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<String> authenticate(@Valid @RequestBody AuthRequest authRequest){
-        Users isVerifiedUser = userRepository.findByEmail(authRequest.email())
+        Users isVerifiedUser = userRepository.findActiveByEmail(authRequest.email())
                 .orElseThrow(()->new UsernameNotFoundException("User not found!"));
 
         if(isVerifiedUser.getIsVerified()){

@@ -44,6 +44,12 @@ public class Users implements UserDetails {
     @Size(min = 8, message = "Password must be at least 8 characters long.")
     private String password;
 
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @Column(name = "deleted_at")
+    private Timestamp deletedAt;
+
     @Column(name = "is_verified")
     private Boolean isVerified = false;
 
@@ -94,7 +100,7 @@ public class Users implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isVerified;
+        return Boolean.TRUE.equals(isVerified) && !Boolean.TRUE.equals(isDeleted);
     }
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)

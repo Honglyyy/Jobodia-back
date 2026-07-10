@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -26,21 +27,34 @@ public class UserService {
     private final EmailService emailService;
 
     public UserResponseDto register(RegisterRequestDto requestDto){
+        Users deletedUser = userRepository.findByEmailAndIsDeletedTrue(requestDto.email()).orElse(null);
+        Users activeUser = userRepository.findActiveByEmail(requestDto.email()).orElse(null);
 
-        if(userRepository.findByEmail(requestDto.email()).isPresent()){
+        if(activeUser != null){
             throw new DuplicateResourceException("Email already exists");
         }
 
-        if(userRepository.findByUsername(requestDto.username()).isPresent()){
+        if(userRepository.findActiveByUsername(requestDto.username()).isPresent()){
             throw new DuplicateResourceException("Username already exists");
         }
 
-        Users user = new Users();
+        if (deletedUser != null && !deletedUser.getRole().equals(requestDto.role())) {
+            throw new InvalidRequestException("Role mismatch for restored account");
+        }
+
+        Users user = deletedUser != null ? deletedUser : new Users();
         user.setEmail(requestDto.email());
         user.setUsername(requestDto.username());
-        user.setRole(requestDto.role());
+        user.setRole(deletedUser != null ? deletedUser.getRole() : requestDto.role());
         user.setPassword(passwordEncoder.encode(requestDto.password()));
-        user.setUserId(UUID.randomUUID().toString());
+        user.setUserId(user.getUserId() == null ? UUID.randomUUID().toString() : user.getUserId());
+        user.setIsDeleted(false);
+        user.setDeletedAt(null);
+        user.setResetPasswordOtp(null);
+        user.setResetPasswordOtpExpireAt(null);
+        user.setVerifyOtp(null);
+        user.setVerifyOtpExpireAt(null);
+
         userRepository.save(user);
 
         sendVerifyOtp(user.getEmail());
@@ -49,7 +63,7 @@ public class UserService {
     }
 
     public void sendResetOtp(String email){
-        Users user = userRepository.findByEmail(email)
+        Users user = userRepository.findActiveByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String otp = generateOtp();
@@ -70,7 +84,7 @@ public class UserService {
     }
 
     public UserResponseDto verifyOtp(String email,String otp){
-        Users existingUser = userRepository.findByEmail(email)
+        Users existingUser = userRepository.findActiveByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(existingUser.getVerifyOtpExpireAt() < System.currentTimeMillis()){
@@ -91,7 +105,7 @@ public class UserService {
     }
 
     public void resetPassword(String otp, String email, String password){
-        Users user =  userRepository.findByEmail(email)
+        Users user =  userRepository.findActiveByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(user.getResetPasswordOtpExpireAt() < System.currentTimeMillis()){
@@ -117,7 +131,7 @@ public class UserService {
     public void sendVerifyOtp(String email){
         Long verifyOtpExpiration = System.currentTimeMillis() + 10 * 60 * 1000;
         String verifyOtp = userUtil.generateOtp();
-        Users existingUser = userRepository.findByEmail(email)
+        Users existingUser = userRepository.findActiveByEmail(email)
                 .orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         if(existingUser.getIsVerified()){
@@ -135,6 +149,24 @@ public class UserService {
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void softDeleteUser(String email){
+        Users user = userRepository.findActiveByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            return;
+        }
+
+        user.setIsDeleted(true);
+        user.setDeletedAt(new Timestamp(System.currentTimeMillis()));
+        user.setVerifyOtp(null);
+        user.setVerifyOtpExpireAt(null);
+        user.setResetPasswordOtp(null);
+        user.setResetPasswordOtpExpireAt(null);
+
+        userRepository.save(user);
     }
 
 }
