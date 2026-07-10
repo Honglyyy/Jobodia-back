@@ -6,13 +6,17 @@ import com.luysot.jobodia.dto.UsersDTOs.UserResponseDto;
 import com.luysot.jobodia.dto.UsersDTOs.VerifyUserDto;
 import com.luysot.jobodia.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/auth")
 public class UserController {
     private final UserService userService;
@@ -30,7 +34,12 @@ public class UserController {
 
 
     @PostMapping("/send-reset-otp")
-    public ResponseEntity<Void> sendResetOtp(@RequestParam String email) {
+    public ResponseEntity<Void> sendResetOtp(
+            @RequestParam
+            @NotBlank(message = "Email is required")
+            @Email(message = "Invalid email format")
+            String email
+    ) {
         userService.sendResetOtp(email);
         return ResponseEntity.noContent().build();
     }

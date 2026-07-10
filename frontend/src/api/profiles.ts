@@ -27,7 +27,7 @@ export const uploadResume = (title: string, file: File) => {
 }
 
 export const deleteResume = (id: number) =>
-  USE_MOCK ? mockDeleteResume(id) : client.delete(`/seeker-resumes/me/${id}`)
+  USE_MOCK ? mockDeleteResume(id) : client.delete(`/seeker-resumes/${id}`)
 
 // Cover Letters
 export const getCoverLetters = (_page = 0, _size = 10) =>
@@ -40,7 +40,7 @@ export const uploadCoverLetter = (title: string, file: File) => {
 }
 
 export const deleteCoverLetter = (id: number) =>
-  USE_MOCK ? mockDeleteCoverLetter(id) : client.delete(`/seeker-cover-letters/me/${id}`)
+  USE_MOCK ? mockDeleteCoverLetter(id) : client.delete(`/seeker-cover-letters/${id}`)
 
 // Employer profile
 export const createEmployerProfile = (formData: FormData) =>

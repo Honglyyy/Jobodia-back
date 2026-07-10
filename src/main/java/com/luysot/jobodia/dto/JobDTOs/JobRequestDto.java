@@ -29,21 +29,28 @@ public record JobRequestDto(
         BigDecimal maxSalary,
 
         @NotEmpty(message = "At least one responsibility is required")
+        @Size(max = 20, message = "Responsibilities cannot exceed 20 items")
         List<@NotBlank(message = "Responsibility cannot be blank")
-            String> responsibilities,
+                @Size(max = 500, message = "Responsibility cannot exceed 500 characters")
+                String> responsibilities,
 
         @NotEmpty(message = "At least one requirement is required")
+        @Size(max = 20, message = "Requirements cannot exceed 20 items")
         List<@NotBlank(message = "Requirement cannot be blank")
+                @Size(max = 500, message = "Requirement cannot exceed 500 characters")
                 String> requirements,
 
         @NotBlank(message = "Description is required")
+        @Size(max = 5000, message = "Description cannot exceed 5000 characters")
         String description,
 
         @Size(max = 1000, message = "Summary cannot exceed 1000 characters")
         String summary,
 
         @NotEmpty(message = "At least one benefit is required")
-        List<@NotBlank(message = "Benifit cannot be blank")
+        @Size(max = 20, message = "Benefits cannot exceed 20 items")
+        List<@NotBlank(message = "Benefit cannot be blank")
+                @Size(max = 500, message = "Benefit cannot exceed 500 characters")
                 String> benefits,
 
         @NotNull(message = "Job type is required")
@@ -58,15 +65,21 @@ public record JobRequestDto(
         @NotNull(message = "Job site is required")
         JobSite jobSite,
 
-        @Min(value = 0, message = "Years of experience cannot be negative")
+        @PositiveOrZero(message = "Years of experience cannot be negative")
         Long yearsOfExperience,
 
-        List<String> languages,
+        @Size(max = 20, message = "Languages cannot exceed 20 items")
+        List<@NotBlank(message = "Language cannot be blank")
+                @Size(max = 100, message = "Language cannot exceed 100 characters")
+                String> languages,
 
-        List<String> qualifications,
+        @Size(max = 20, message = "Qualifications cannot exceed 20 items")
+        List<@NotBlank(message = "Qualification cannot be blank")
+                @Size(max = 255, message = "Qualification cannot exceed 255 characters")
+                String> qualifications,
 
         @NotNull(message = "Available position is required")
-        @Min(value = 1, message = "Available position must be at least 1")
+        @Positive(message = "Available position must be at least 1")
         Integer availablePosition,
 
         @NotNull(message = "Expiration date is required")
