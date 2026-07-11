@@ -11,15 +11,22 @@ import com.luysot.jobodia.repository.SeekerProfileRepository;
 import com.luysot.jobodia.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,12 +78,13 @@ public class SeekerCoverLetterService {
 
         Path uploadPath = Paths.get(uploadDir);
 
+        String originalName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String storedName =
                 UUID.randomUUID()
                         + "_("
                         + user.getUsername()
                         + ")_"
-                        + file.getOriginalFilename();
+                        + originalName;
 
         Path path = uploadPath.resolve(storedName);
 
@@ -85,7 +93,7 @@ public class SeekerCoverLetterService {
         SeekerCoverLetters seekerCoverLetter = new SeekerCoverLetters();
 
         seekerCoverLetter.setTitle(title);
-        seekerCoverLetter.setCoverLetterOriginalName(file.getOriginalFilename());
+        seekerCoverLetter.setCoverLetterOriginalName(originalName);
         seekerCoverLetter.setCoverLetterStoredName(storedName);
         seekerCoverLetter.setCoverLetterContentType(contentType);
 
@@ -95,9 +103,9 @@ public class SeekerCoverLetterService {
                 seekerCoverLetterRepository.save(seekerCoverLetter);
 
         saved.setCoverLetterUrl(
-                "/api/v1/seeker-resume/"
+                "/api/v1/seeker-cover-letters/"
                         + saved.getId()
-                        + "/resume"
+                        + "/file"
         );
 
         seekerCoverLetterRepository.save(saved);
@@ -118,15 +126,43 @@ public class SeekerCoverLetterService {
     }
 
     public SeekerCoverLetterResponseDto findSeekerOwnCoverLetter(Long id,String email){
+        return toCoverLetterResponse(findSeekerOwnCoverLetterEntity(id, email));
+    }
+
+    public SeekerCoverLetters findSeekerOwnCoverLetterEntity(Long id, String email) {
         Users user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         SeekerProfiles seekerProfiles = seekerProfileRepository
                 .findByUser(user)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Seeker profile not found"));
-        SeekerCoverLetters coverLetter = seekerCoverLetterRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new ResourceNotFoundException("Cover letter not found"));
+        return seekerCoverLetterRepository.findByIdAndSeeker(id,seekerProfiles).orElseThrow(() -> new ResourceNotFoundException("Cover letter not found"));
+    }
 
+    public Resource loadSeekerOwnCoverLetterFile(Long id, String email) throws MalformedURLException, FileNotFoundException {
+        SeekerCoverLetters coverLetter = findSeekerOwnCoverLetterEntity(id, email);
+        String storedName = coverLetter.getCoverLetterStoredName();
+        if (storedName == null || storedName.isBlank()) {
+            throw new FileNotFoundException("Cover letter file not found");
+        }
 
-        return SeekerCoverLetterResponseDto.builder().id(coverLetter.getId()).title(coverLetter.getTitle()).coverLetterUrl(coverLetter.getCoverLetterUrl()).build();
+        Path path = Paths.get("uploads")
+                .resolve("seeker-cover-letter")
+                .resolve(coverLetter.getSeeker().getUser().getUsername())
+                .resolve(storedName);
+
+        if (!Files.exists(path)) {
+            throw new FileNotFoundException("Cover letter file not found");
+        }
+
+        return new UrlResource(path.toUri());
+    }
+
+    private SeekerCoverLetterResponseDto toCoverLetterResponse(SeekerCoverLetters coverLetter) {
+        return SeekerCoverLetterResponseDto.builder()
+                .id(coverLetter.getId())
+                .title(coverLetter.getTitle())
+                .coverLetterUrl(coverLetter.getCoverLetterUrl())
+                .build();
     }
 
     @Transactional

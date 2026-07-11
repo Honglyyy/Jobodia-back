@@ -7,6 +7,8 @@ import com.luysot.jobodia.model.enums.JobSite;
 import com.luysot.jobodia.model.enums.JobTime;
 import com.luysot.jobodia.service.JobService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,10 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/jobs")
 public class JobController {
     private final JobService jobService;
@@ -32,13 +36,13 @@ public class JobController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<JobResponseDto> updateJob(@Valid @PathVariable Long id,@Valid @RequestBody JobRequestDto request, Authentication authentication){
+    ResponseEntity<JobResponseDto> updateJob(@PathVariable @Positive(message = "Job id must be positive") Long id,@Valid @RequestBody JobRequestDto request, Authentication authentication){
         return ResponseEntity.ok(jobService.updateJob(id,request,authentication.getName()));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<?> deleteJob(@PathVariable Long id, Authentication authentication){
+    ResponseEntity<?> deleteJob(@PathVariable @Positive(message = "Job id must be positive") Long id, Authentication authentication){
         jobService.deleteJob(id,authentication.getName());
         return ResponseEntity.noContent().build();
     }
@@ -51,10 +55,10 @@ public class JobController {
 
     @GetMapping("/search")
     ResponseEntity<Page<JobResponseDto>> search(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String industry,
-            @RequestParam(required = false) String company,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @Size(max = 255, message = "Title cannot exceed 255 characters") String title,
+            @RequestParam(required = false) @Size(max = 255, message = "Industry cannot exceed 255 characters") String industry,
+            @RequestParam(required = false) @Size(max = 255, message = "Company cannot exceed 255 characters") String company,
+            @RequestParam(required = false) @Size(max = 255, message = "Category cannot exceed 255 characters") String category,
             @RequestParam(required = false)JobTime jobTime,
             @RequestParam(required = false) JobLevel jobLevel,
             @RequestParam(required = false) JobSite jobSite,
@@ -72,7 +76,7 @@ public class JobController {
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<JobResponseDto> findJob(@PathVariable Long id){
+    ResponseEntity<JobResponseDto> findJob(@PathVariable @Positive(message = "Job id must be positive") Long id){
         return ResponseEntity.ok(jobService.findJob(id));
     }
 
@@ -85,9 +89,9 @@ public class JobController {
         return ResponseEntity.ok(jobService.findOwnEmployerJobs(authentication.getName(), pageable));
     }
 
-    @GetMapping("/{id}/me")
+    @GetMapping({"/me/{id}", "/{id}/me"})
     @PreAuthorize("hasRole('EMPLOYER')")
-    ResponseEntity<JobResponseDto> findOwnEmployerJob(Authentication authentication,@PathVariable Long id){
+    ResponseEntity<JobResponseDto> findOwnEmployerJob(Authentication authentication,@PathVariable @Positive(message = "Job id must be positive") Long id){
         return ResponseEntity.ok(jobService.findOwnEmployerJob(authentication.getName(), id));
     }
 }
